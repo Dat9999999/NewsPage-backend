@@ -1,4 +1,6 @@
-﻿using NewsPage.data;
+﻿using Microsoft.EntityFrameworkCore;
+using NewsPage.data;
+using NewsPage.Models;
 using NewsPage.Models.entities;
 using NewsPage.repositories.interfaces;
 
@@ -25,6 +27,26 @@ namespace NewsPage.repositories
             await _context.SaveChangesAsync();
             return userInfo;
 
+        }
+
+        public async Task<UserDetails> GetDetailByAccountID(Guid accountID)
+        {
+            var userDetail = await _context.UserDetails.FirstOrDefaultAsync(u => u.UserAccountId == accountID);
+
+            return userDetail;
+        }
+
+        public async Task UpdateProfile(Guid accountId ,UpdateProfileDTO updateProfileDTO)
+        {
+            var userDetail = await _context.UserDetails.FirstOrDefaultAsync(u => u.UserAccountId==accountId);
+
+            if (userDetail == null) throw new Exception("Người dùng không tồn tại để chỉnh sửa ");
+
+            userDetail.FullName = updateProfileDTO.FullName;
+            userDetail.Birthday = updateProfileDTO.Birthday;
+            userDetail.Avatar = updateProfileDTO.Avatar;
+            userDetail.Sex = updateProfileDTO.Sex;
+            await _context.SaveChangesAsync();
         }
     }
 }

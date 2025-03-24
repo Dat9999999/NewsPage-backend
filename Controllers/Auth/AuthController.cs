@@ -71,14 +71,15 @@ namespace NewsPage.Controllers.Auth
                 {
                     return BadRequest(ModelState); // ❌ return error if invalid input
                 }
+                // block all request register invalid which contains unverify email
+                //using cache to check if that email is verified by key {mail}_to_verify 
+                
+                
                 if (registerDTO.Role == "Editor")
                 {
                     return BadRequest(new { message = "Yêu cầu không hợp lệ" });
                 }
-                if (await _userAccountRepository.GetByEmail(registerDTO.Email) is not null)
-                {
-                    return BadRequest(new { message = "Email đã tồn tại" });
-                }
+
                 //Hash password
                 string passwordHash = _passwordHelper.HashPassword(registerDTO.Password);
 
@@ -134,11 +135,16 @@ namespace NewsPage.Controllers.Auth
 
 
         [HttpGet("verifyEmail")]
+
+        //Send an otp mail to new user account 
         public async Task<IActionResult> VerifyEmail(string email)
         {
             try
             {
-
+                if (await _userAccountRepository.GetByEmail(email) is not null)
+                {
+                    return BadRequest(new { message = "Email đã tồn tại, vui lòng dùng email khác để đăng ký" });
+                }
                 //create subject 
                 string subject = "Xác thực Email";
                 //create otp 
@@ -179,7 +185,6 @@ namespace NewsPage.Controllers.Auth
                 return BadRequest(new { message = "Có lỗi khi xác thực mã otp" });
             }
         }
-
 
         [HttpGet("resetPassword")]
         public async Task<IActionResult> RequestResetPassword(string email)

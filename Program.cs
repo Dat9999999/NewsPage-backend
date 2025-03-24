@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NewsPage.helpers;
 using StackExchange.Redis;
+using Microsoft.OpenApi.Models;
 
 namespace NewsPage
 {
@@ -22,7 +23,36 @@ namespace NewsPage
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "NewsPage API", Version = "v1" });
+
+                // 🔹 Cấu hình Swagger để hỗ trợ Authorization bằng JWT
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Nhập token theo định dạng: Bearer {your_token}"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -82,6 +112,20 @@ namespace NewsPage
             app.UseStaticFiles();
             app.UseHttpsRedirection();
 
+            //Xử lý lỗi 401 
+            app.Use(async (context, next) =>
+            {
+                await next();
+
+                // Kiểm tra nếu bị 401 thì trả về JSON thay vì trang HTML mặc định
+                if (context.Response.StatusCode == 401)
+                {
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync("{\"message\": \"Bạn chưa đăng nhập hoặc không có quyền truy cập\"}");
+                }
+            });
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

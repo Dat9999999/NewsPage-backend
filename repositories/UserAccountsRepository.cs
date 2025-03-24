@@ -39,6 +39,11 @@ namespace NewsPage.repositories
            return await _context.UserAccounts.FirstOrDefaultAsync(x => x.Email == email);
         }
 
+        public async Task<UserAccounts?> GetById(Guid id)
+        {
+            return await _context.UserAccounts.FirstOrDefaultAsync(x => x.Id == id);
+        }
+
         public async Task<UserAccounts> ResetPassword(string email, string newPassword)
         {
             var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == email);

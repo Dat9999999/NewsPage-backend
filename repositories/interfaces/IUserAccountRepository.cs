@@ -5,6 +5,7 @@ namespace NewsPage.repositories.interfaces
     public interface IUserAccountRepository
     {
         Task<UserAccounts?> GetByEmail(string email);
+        Task<UserAccounts?> GetById(Guid id);
         Task<Guid> CreateAccount(string email, string passwordHash,string role);
         void VerifyEmail(string email, UserAccounts user);
 
