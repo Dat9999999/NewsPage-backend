@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\Category\**" />
+    <Content Remove="Controllers\Category\**" />
+    <EmbeddedResource Remove="Controllers\Category\**" />
+    <None Remove="Controllers\Category\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
@@ -20,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="data\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

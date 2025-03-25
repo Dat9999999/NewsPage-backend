@@ -1,13 +1,14 @@
 ﻿
-using Microsoft.EntityFrameworkCore;
-using NewsPage.data;
-using NewsPage.repositories.interfaces;
-using NewsPage.repositories;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NewsPage.data;
 using NewsPage.helpers;
-using StackExchange.Redis;
+using NewsPage.repositories;
+using NewsPage.repositories.interfaces;
+using NewsPage.Repositories;
+using System.Text;
+using System.Text.Json.Serialization;
 
 namespace NewsPage
 {
@@ -27,9 +28,9 @@ namespace NewsPage
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-            // connect to Redis // xử lý mã otp 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-                .Connect(builder.Configuration["Redis:ConnectionString"]));
+            //// connect to Redis // xử lý mã otp 
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+            //    .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
@@ -57,6 +58,9 @@ namespace NewsPage
             //Auth service
             builder.Services.AddScoped<IUserAccountRepository, UserAccountsRepository>();
             builder.Services.AddScoped<IUserDetailRepository, UserDetailRepository>();
+            builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password
@@ -69,6 +73,13 @@ namespace NewsPage
 
             //Generate OTP
             builder.Services.AddSingleton<OtpHelper>();
+
+            // Convert enum string
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
 
 
