@@ -34,6 +34,11 @@ namespace NewsPage.repositories
 
         }
 
+        public IQueryable<UserAccounts> GetAll()
+        {
+            return _context.UserAccounts.AsQueryable();
+        }
+
         public async Task<UserAccounts?> GetByEmail(string email)
         {
            return await _context.UserAccounts.FirstOrDefaultAsync(x => x.Email == email);
@@ -42,6 +47,17 @@ namespace NewsPage.repositories
         public async Task<UserAccounts?> GetById(Guid id)
         {
             return await _context.UserAccounts.FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        public async Task LockAccount(Guid id)
+        {
+            var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Id == id);
+            if (userAccount == null)
+            {
+                throw new Exception("Người dùng không tồn tại để thực hiện khóa");
+            }
+            userAccount.Status = "Disable";
+            await _context.SaveChangesAsync();
         }
 
         public async Task<UserAccounts> ResetPassword(string email, string newPassword)
@@ -53,6 +69,17 @@ namespace NewsPage.repositories
             }
             await _context.SaveChangesAsync();
             return userAccount;
+        }
+
+        public async Task UnLockAccount(Guid id)
+        {
+            var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Id == id);
+            if (userAccount == null)
+            {
+                throw new Exception("Người dùng không tồn tại để thực hiện mở khóa");
+            }
+            userAccount.Status = "Enable";
+            await _context.SaveChangesAsync();
         }
 
         public async void VerifyEmail(string email, UserAccounts user)

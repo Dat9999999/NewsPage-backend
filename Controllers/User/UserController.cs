@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NewsPage.Models;
+using NewsPage.Models.entities;
 using NewsPage.repositories.interfaces;
 using System.Security.Claims;
 
@@ -29,6 +31,7 @@ namespace NewsPage.Controllers.User
                 {
                     return NotFound(new { message = "Người dùng không tồn tại" });
                 }
+
                 return Ok(userDetails);
             }
             catch (Exception ex)
@@ -40,34 +43,108 @@ namespace NewsPage.Controllers.User
 
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> updatePrfile(Guid AccountId, [FromBody] UpdateProfileDTO updateProfileDTO)
-        {
+        public async Task<IActionResult> updatePrfile(Guid AccountId, [FromForm] UpdateProfileDTO updateProfileDTO)
+            {
 
+                try
+                {
+                    var userAccount = await _userAccountRepository.GetById(AccountId);
+                    if (userAccount == null)
+                    {
+                        return NotFound(new {message = "Người dùng không tồn tại"});
+                    }
+                    var userEmailFromToken = User.FindFirst(ClaimTypes.Name)?.Value;
+                    var roleFromToken = User.FindFirst(ClaimTypes.Role)?.Value;
+                    Console.WriteLine(userEmailFromToken);
+                    Console.WriteLine(userAccount.Email);
+                    if (roleFromToken != "Admin" && userEmailFromToken != userAccount.Email)
+                    {
+                        return BadRequest(new { message = "Bạn không có quyền chỉnh sửa đối với người dùng này" });
+                    }
+
+                    await _userDetailRepository.UpdateProfile(userAccount.Id, updateProfileDTO);
+
+                    return Ok(new {success = true, message = "Cập nhật thông tin thành công" });
+                }
+                catch (Exception e){
+                    Console.WriteLine(e);
+                    return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống khi thực hiện chỉnh sửa thông tin người dùng. Vui lòng thử lại sau!" });
+                }
+            }
+        
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> GetListUser(int page = 1, int pageSize = 10, string? search = null)
+        {
             try
             {
-                var userAccount = await _userAccountRepository.GetById(AccountId);
-                if (userAccount == null)
+                if(page < 1 ||  pageSize < 1)
                 {
-                    return NotFound(new {message = "Người dùng không tồn tại"});
+                    return BadRequest(new { message = "Thông tin phân trang không hợp lệ" });
                 }
-                var userEmailFromToken = User.FindFirst(ClaimTypes.Name)?.Value;
-                var roleFromToken = User.FindFirst(ClaimTypes.Role)?.Value;
-                Console.WriteLine(userEmailFromToken);
-                Console.WriteLine(userAccount.Email);
-                if (roleFromToken != "Admin" && userEmailFromToken != userAccount.Email)
+                var query = _userAccountRepository.GetAll();
+                // Lọc theo tên hoặc email nếu có từ khóa tìm kiếm
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    return BadRequest(new { message = "Bạn không có quyền chỉnh sửa đối với người dùng này" });
+                    query = query.Where(u => u.Email.Contains(search));
                 }
+                int totalUsers = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling(totalUsers /(double)pageSize);
+                var paginatedUsers = await query
+                    .Skip((page -1) * pageSize)
+                    .Take(pageSize)
+                    .ToArrayAsync();
+                return Ok(new
+                {
+                    success = true,
+                    currentPage = page,
+                    totalPages = totalPages,
+                    totalUsers = totalUsers,
+                    pageSize = pageSize,
+                    data = paginatedUsers
+                });
 
-                await _userDetailRepository.UpdateProfile(userAccount.Id, updateProfileDTO);
-
-                return Ok(new {success = true, data = updateProfileDTO });
             }
-            catch (Exception e){
+            catch (Exception e)
+            {
                 Console.WriteLine(e);
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống khi thực hiện chỉnh sửa thông tin người dùng. Vui lòng thử lại sau!" });
+                return StatusCode(500, new { message = "Lỗi hệ thống trong lúc lấy danh sách người dùng" });
             }
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("lock")]
+        public async Task<IActionResult> LockAccount(Guid accountId)
+        {
+            try
+            {
+                await _userAccountRepository.LockAccount(accountId);
+                return Ok(new { message = "Khóa tài khoản người dùng thành công", accountId});
+
+            }
+            catch (Exception e) { 
+                Console.WriteLine(e) ;
+                return StatusCode(500, new { message = "Lỗi hệ thống khi thực hiện khóa người dùng" });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("unlock")]
+        public async Task<IActionResult> UnLockAccount(Guid accountId)
+        {
+            try
+            {
+                await _userAccountRepository.UnLockAccount(accountId);
+                return Ok(new { message = "Mở khóa tài khoản người dùng thành công", accountId });
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, new { message = "Lỗi hệ thống khi thực hiện mở khóa người dùng" });
+            }
+        }
+
 
     }
 }

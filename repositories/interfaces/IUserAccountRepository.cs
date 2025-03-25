@@ -10,5 +10,9 @@ namespace NewsPage.repositories.interfaces
         void VerifyEmail(string email, UserAccounts user);
 
         Task<UserAccounts> ResetPassword(string email, string newPassword);
+        IQueryable<UserAccounts> GetAll();
+
+        Task LockAccount(Guid id);
+        Task UnLockAccount(Guid id);
     }
 }

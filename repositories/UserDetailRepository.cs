@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NewsPage.data;
+using NewsPage.helpers;
 using NewsPage.Models;
 using NewsPage.Models.entities;
 using NewsPage.repositories.interfaces;
@@ -9,9 +10,11 @@ namespace NewsPage.repositories
     public class UserDetailRepository : IUserDetailRepository
     {
         private readonly ApplicationDbContext _context;
-        public UserDetailRepository(ApplicationDbContext context)
+        private readonly FileHelper _fileHelper;
+        public UserDetailRepository(ApplicationDbContext context, FileHelper fileHelper)
         {
             _context = context;
+            _fileHelper = fileHelper;
         }
         public async Task<UserDetails>  CreateInfo(string FullName, string sex, DateTime Birthday, Guid userAccountId)
         {
@@ -21,7 +24,7 @@ namespace NewsPage.repositories
                 Sex = sex, 
                 Birthday = Birthday, 
                 UserAccountId = userAccountId, 
-                Avatar = "default_avatar.jpg"
+                Avatar = "/uploads/default_avatar.jpg"
             };
             await _context.UserDetails.AddAsync(userInfo);
             await _context.SaveChangesAsync();
@@ -44,7 +47,11 @@ namespace NewsPage.repositories
 
             userDetail.FullName = updateProfileDTO.FullName;
             userDetail.Birthday = updateProfileDTO.Birthday;
-            userDetail.Avatar = updateProfileDTO.Avatar;
+            if (updateProfileDTO.Avatar != null)
+            {
+                string avatarPath = await _fileHelper.SaveFileAsync(updateProfileDTO.Avatar);
+                userDetail.Avatar = avatarPath;
+            }
             userDetail.Sex = updateProfileDTO.Sex;
             await _context.SaveChangesAsync();
         }
