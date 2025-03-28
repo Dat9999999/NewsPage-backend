@@ -11,99 +11,92 @@ namespace NewsPage.Controllers.Categories
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ITopicRepository _topicRepository;
 
-        public CategoryController(ICategoryRepository categoryRepository)
+        public CategoryController(ICategoryRepository categoryRepository, ITopicRepository topicRepository)
         {
             _categoryRepository = categoryRepository;
+            _topicRepository = topicRepository;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
+        [HttpGet("topic/{topicId}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CategoryDTO>>>> GetCategoriesByTopicId(Guid topicId)
         {
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetCategoriesByTopicIdAsync(topicId);
+            if (categories == null || !categories.Any())
+                return NotFound(new ApiResponse<IEnumerable<CategoryDTO>>(404, "Không tìm thấy danh mục nào", null));
 
-            // Mapping Category entity to CategoryDTO
-            var categoryDTOs = categories.Select(c => new CategoryDTO
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Topic = c.Topic // Trả về toàn bộ object Topic
-            }).ToList();
-
-            return Ok(categoryDTOs);
+            var categoryDTOs = categories.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name, Topic = c.Topic }).ToList();
+            return Ok(new ApiResponse<IEnumerable<CategoryDTO>>(200, "Lấy danh mục thành công", categoryDTOs));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryDTO>> GetCategory(Guid id)
+        public async Task<ActionResult<ApiResponse<CategoryDTO>>> GetCategory(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null) return NotFound();
+            if (category == null)
+                return NotFound(new ApiResponse<CategoryDTO>(404, "Không tìm thấy danh mục", null));
 
-            var categoryDTO = new CategoryDTO
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Topic = category.Topic // Trả về object Topic
-            };
-
-            return Ok(categoryDTO);
+            var categoryDTO = new CategoryDTO { Id = category.Id, Name = category.Name, Topic = category.Topic };
+            return Ok(new ApiResponse<CategoryDTO>(200, "Lấy danh mục thành công", categoryDTO));
         }
 
         [HttpPost]
-        public async Task<ActionResult<CategoryDTO>> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
+        public async Task<ActionResult<ApiResponse<CategoryDTO>>> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
         {
-            var category = new Category
-            {
-                Id = Guid.NewGuid(),
-                Name = categoryCreateDTO.Name,
-                TopicId = categoryCreateDTO.TopicId
-            };
+            var topic = await _topicRepository.GetTopicByIdAsync(categoryCreateDTO.TopicId);
+            if (topic == null)
+                return NotFound(new ApiResponse<CategoryDTO>(404, "Không tìm thấy topic", null));
 
+            var category = new Category { Id = Guid.NewGuid(), Name = categoryCreateDTO.Name, TopicId = categoryCreateDTO.TopicId };
             var addedCategory = await _categoryRepository.AddAsync(category);
 
-            var categoryDTO = new CategoryDTO
-            {
-                Id = addedCategory.Id,
-                Name = addedCategory.Name,
-                Topic = addedCategory.Topic
-            };
-
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, categoryDTO);
+            var categoryDTO = new CategoryDTO { Id = addedCategory.Id, Name = addedCategory.Name, Topic = addedCategory.Topic };
+            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, new ApiResponse<CategoryDTO>(201, "Tạo danh mục thành công", categoryDTO));
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryUpdateDTO categoryDto)
+        public async Task<ActionResult<ApiResponse<CategoryDTO>>> UpdateCategory(Guid id, [FromBody] CategoryUpdateDTO categoryDto)
         {
-            if (id != categoryDto.Id) return BadRequest("ID không khớp.");
+            if (id != categoryDto.Id)
+                return BadRequest(new ApiResponse<CategoryDTO>(400, "ID không khớp", null));
 
             var existingCategory = await _categoryRepository.GetByIdAsync(id);
-            if (existingCategory == null) return NotFound();
+            if (existingCategory == null)
+                return NotFound(new ApiResponse<CategoryDTO>(404, "Danh mục không tồn tại", null));
 
             existingCategory.Name = categoryDto.Name;
             existingCategory.TopicId = categoryDto.TopicId;
-
             var updatedCategory = await _categoryRepository.UpdateAsync(existingCategory);
-            if (updatedCategory == null) return BadRequest("Cập nhật thất bại.");
 
-            var updatedCategoryDTO = new CategoryDTO
-            {
-                Id = updatedCategory.Id,
-                Name = updatedCategory.Name,
-                Topic = updatedCategory.Topic // Trả về object Topic nếu có
-            };
+            if (updatedCategory == null)
+                return BadRequest(new ApiResponse<CategoryDTO>(400, "Cập nhật thất bại", null));
 
-            return Ok(updatedCategoryDTO);
+            var updatedCategoryDTO = new CategoryDTO { Id = updatedCategory.Id, Name = updatedCategory.Name, Topic = updatedCategory.Topic };
+            return Ok(new ApiResponse<CategoryDTO>(200, "Cập nhật danh mục thành công", updatedCategoryDTO));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null) return NotFound();
+            if (category == null)
+                return NotFound(new ApiResponse<string>(404, "Không tìm thấy danh mục", null));
 
             await _categoryRepository.DeleteAsync(id);
-            return NoContent();
+            return Ok(new ApiResponse<string>(200, "Xóa danh mục thành công", null));
+        }
+
+        [HttpGet("filter")]
+        public async Task<ActionResult<ApiResponse<PaginatedResponseDTO<CategoryDTO>>>> GetPaginatedCategories([FromQuery] CategoryFilterRequestDTO filter)
+        {
+            var paginatedResult = await _categoryRepository.GetPaginatedCategoriesAsync(
+                filter.PageNumber, filter.PageSize, filter.SearchName, filter.TopicId, filter.SortByNameAsc);
+
+            var categoryDTOs = paginatedResult.Items.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name, Topic = c.Topic }).ToList();
+            var response = new PaginatedResponseDTO<CategoryDTO>(categoryDTOs, paginatedResult.TotalCount, paginatedResult.PageNumber, paginatedResult.PageSize);
+
+            return Ok(new ApiResponse<PaginatedResponseDTO<CategoryDTO>>(200, "Lấy danh sách danh mục thành công", response));
         }
     }
 }

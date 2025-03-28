@@ -61,6 +61,7 @@ namespace NewsPage
             builder.Services.AddScoped<ITopicRepository, TopicRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password

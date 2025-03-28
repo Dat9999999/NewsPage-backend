@@ -12,7 +12,7 @@ using NewsPage.data;
 namespace NewsPage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250325083700_initDB")]
+    [Migration("20250327053438_initDB")]
     partial class initDB
     {
         /// <inheritdoc />
@@ -37,6 +37,9 @@ namespace NewsPage.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(MAX)");
+
+                    b.Property<bool>("IsShowAuthor")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");

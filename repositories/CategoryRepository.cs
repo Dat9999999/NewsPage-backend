@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NewsPage.data;
 using NewsPage.Models.entities;
+using NewsPage.Models.ResponseDTO;
 using NewsPage.repositories.interfaces;
 
 namespace NewsPage.Repositories
@@ -15,10 +16,7 @@ namespace NewsPage.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Category>> GetAllAsync()
-        {
-            return await _context.Categories.Include(c => c.Topic).ToListAsync();
-        }
+
 
         public async Task<Category?> GetByIdAsync(Guid id)
         {
@@ -55,13 +53,86 @@ namespace NewsPage.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category != null)
+            var category = await _context.Categories
+                .Include(c => c.Topic)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
             {
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
+                return;
             }
+
+            // Lấy tất cả Article
+            var articles = await _context.Articles
+                .Where(a => a.CategoryId == id)
+                .ToListAsync();
+
+            // Duyệt Article
+            foreach (var article in articles)
+            {
+                // Xóa tất cả Comment
+                var comments = await _context.Comments
+                    .Where(c => c.ArticleId == article.Id)
+                    .ToListAsync();
+
+                if (comments.Any())
+                {
+                    _context.Comments.RemoveRange(comments);
+                }
+
+                // Xóa Article
+                _context.Articles.Remove(article);
+            }
+
+            // Xóa Category
+            _context.Categories.Remove(category);
+
+            await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Category>> GetCategoriesByTopicIdAsync(Guid topicId)
+        {
+            return await _context.Categories
+                                 .Include(c => c.Topic)
+                                 .Where(c => c.TopicId == topicId)
+                                 .ToListAsync();
+        }
+
+
+        public async Task<PaginatedResponseDTO<Category>> GetPaginatedCategoriesAsync(
+            int pageNumber,
+            int pageSize,
+            string? searchName = null,
+            Guid? topicId = null,
+            bool sortByNameAsc = true)
+        {
+            var query = _context.Categories.Include(c => c.Topic).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                query = query.Where(c => c.Name.ToLower().Contains(searchName.ToLower()));
+            }
+
+            if (topicId.HasValue)
+            {
+                query = query.Where(c => c.TopicId == topicId.Value);
+            }
+
+            query = sortByNameAsc
+                ? query.OrderBy(c => c.Name)
+                : query.OrderByDescending(c => c.Name);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponseDTO<Category>(items, totalCount, pageNumber, pageSize);
+        }
+
+
     }
 
 }

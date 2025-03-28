@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NewsPage.Models.entities;
 using NewsPage.Models.RequestDTO;
+using NewsPage.Models.ResponseDTO;
 using NewsPage.repositories.interfaces;
 
 namespace NewsPage.Controllers.Topics
@@ -16,63 +17,71 @@ namespace NewsPage.Controllers.Topics
             _topicRepository = topicRepository;
         }
 
-        // POST api/topics - Create
         [HttpPost]
         public async Task<IActionResult> CreateTopic([FromBody] TopicCreateDTO topicDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new ApiResponse<string>(400, "Dữ liệu không hợp lệ", ModelState.ToString()));
+
             var topic = new Topic
             {
                 Id = Guid.NewGuid(),
                 Name = topicDto.Name
             };
+
             var createdTopic = await _topicRepository.AddTopicAsync(topic);
-            return CreatedAtAction(nameof(GetTopicById), new { id = createdTopic.Id }, createdTopic);
+            var response = new ApiResponse<Topic>(201, "Tạo chủ đề thành công", createdTopic);
+
+            return CreatedAtAction(nameof(GetTopicById), new { id = createdTopic.Id }, response);
         }
 
-        // GET api/topics - Get all
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Topic>>> GetAllTopics()
-        {
-            var topics = await _topicRepository.GetAllTopicsAsync();
-            return Ok(topics);
-        }
-
-        // GET api/topics/{id} - Get by Id
         [HttpGet("{id}")]
-        public async Task<ActionResult<Topic>> GetTopicById(Guid id)
+        public async Task<ActionResult<ApiResponse<Topic>>> GetTopicById(Guid id)
         {
             var topic = await _topicRepository.GetTopicByIdAsync(id);
             if (topic == null)
-                return NotFound();
+                return NotFound(new ApiResponse<string>(404, "Không tìm thấy chủ đề"));
 
-            return Ok(topic);
+            return Ok(new ApiResponse<Topic>(200, "Lấy chủ đề thành công", topic));
         }
 
-        // PUT api/topics/{id} - Update
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTopic(Guid id, [FromBody] Topic updatedTopic)
         {
             if (id != updatedTopic.Id)
-                return BadRequest();
+                return BadRequest(new ApiResponse<string>(400, "ID không khớp"));
 
             var result = await _topicRepository.UpdateTopicAsync(updatedTopic);
             if (result == null)
-                return NotFound();
+                return NotFound(new ApiResponse<string>(404, "Không tìm thấy chủ đề để cập nhật"));
 
-            return NoContent();
+            return Ok(new ApiResponse<Topic>(200, "Cập nhật chủ đề thành công", result));
         }
 
-        // DELETE api/topics/{id} - Delete
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTopic(Guid id)
         {
             var isDeleted = await _topicRepository.DeleteTopicAsync(id);
             if (!isDeleted)
-                return NotFound();
+                return NotFound(new ApiResponse<string>(404, "Không tìm thấy chủ đề để xoá"));
 
-            return NoContent();
+            return Ok(new ApiResponse<string>(200, "Xoá chủ đề thành công"));
+        }
+
+        [HttpGet("filter")]
+        public async Task<ActionResult<ApiResponse<PaginatedResponseDTO<Topic>>>> GetPaginatedTopics(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? searchName = null,
+            [FromQuery] bool sortByNameAsc = true)
+        {
+            var paginatedResult = await _topicRepository.GetPaginatedTopicsAsync(
+                pageNumber,
+                pageSize,
+                searchName,
+                sortByNameAsc);
+
+            return Ok(new ApiResponse<PaginatedResponseDTO<Topic>>(200, "Lấy danh sách chủ đề thành công", paginatedResult));
         }
     }
 }

@@ -90,6 +90,7 @@ namespace NewsPage.Migrations
                     Thumbnail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Content = table.Column<string>(type: "NVARCHAR(MAX)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsShowAuthor = table.Column<bool>(type: "bit", nullable: false),
                     PublishedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),

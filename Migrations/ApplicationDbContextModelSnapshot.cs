@@ -35,6 +35,9 @@ namespace NewsPage.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR(MAX)");
 
+                    b.Property<bool>("IsShowAuthor")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
 

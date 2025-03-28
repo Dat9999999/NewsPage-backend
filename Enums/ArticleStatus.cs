@@ -5,6 +5,7 @@
         DRAFT,      // Bản nháp
         PENDING,    // Đang chờ Admin duyệt
         PUBLISHED,  // Đã xuất bản
-        REJECTED   // Bị từ chối bởi Admin
+        REJECTED,   // Bị từ chối bởi Admin
+        HIDDEN      // Đã PUBLISHED và bị ẩn
     }
 }

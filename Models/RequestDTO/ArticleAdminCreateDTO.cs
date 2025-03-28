@@ -1,20 +1,17 @@
 ﻿using NewsPage.Enums;
 
-namespace NewsPage.Models.entities
+namespace NewsPage.Models.RequestDTO
 {
-    public class Article
+    public class ArticleAdminCreateDTO
     {
         public Guid Id { get; set; }
         public required string Title { get; set; }
         public required string Thumbnail { get; set; }
         public required string Content { get; set; }
-        public required ArticleStatus Status { get; set; }
+        public required ArticleStatus Status { get; set; } //  DRAFT Bản nháp hoặc  PENDING Đang chờ Admin duyệt
         public required Boolean IsShowAuthor { get; set; }
-        public DateTime? PublishedAt { get; set; } = null;
-        public DateTime? UpdateAt { get; set; } = null;
         public Guid UserAccountId { get; set; }
         public Guid CategoryId { get; set; }
-        public UserAccounts? UserAccounts { get; set; }
-        public Category? Category { get; set; }
+
     }
 }

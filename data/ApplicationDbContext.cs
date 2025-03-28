@@ -32,6 +32,8 @@ namespace NewsPage.data
                 }
             );
 
+
+
             //config unique email
             modelBuilder.Entity<UserAccounts>()
                 .HasIndex(u => u.Email)

@@ -47,5 +47,7 @@ namespace NewsPage.helpers
 
             return tokenHandler.WriteToken(token);
         }
+
+
     }
 }

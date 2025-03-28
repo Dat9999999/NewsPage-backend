@@ -1,13 +1,9 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
-using NewsPage.data;
 using NewsPage.helpers;
 using NewsPage.Models;
 using NewsPage.Models.entities;
-using NewsPage.repositories;
 using NewsPage.repositories.interfaces;
 
 namespace NewsPage.Controllers.Auth
