@@ -12,6 +12,7 @@ namespace NewsPage.Models.entities
         public required Boolean IsShowAuthor { get; set; }
         public DateTime? PublishedAt { get; set; } = null;
         public DateTime? UpdateAt { get; set; } = null;
+        public required DateTime CreateAt { get; set; }
         public Guid UserAccountId { get; set; }
         public Guid CategoryId { get; set; }
         public UserAccounts? UserAccounts { get; set; }

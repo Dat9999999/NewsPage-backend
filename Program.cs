@@ -82,6 +82,17 @@ namespace NewsPage
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
+            // setup cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
 
 
             var app = builder.Build();
@@ -98,6 +109,7 @@ namespace NewsPage
 
 
             app.MapControllers();
+            app.UseCors("AllowAll");
 
             app.Run();
         }

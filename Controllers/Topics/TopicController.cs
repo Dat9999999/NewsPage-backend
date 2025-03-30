@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NewsPage.Models.entities;
 using NewsPage.Models.RequestDTO;
 using NewsPage.Models.ResponseDTO;
@@ -18,6 +19,7 @@ namespace NewsPage.Controllers.Topics
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTopic([FromBody] TopicCreateDTO topicDto)
         {
             if (!ModelState.IsValid)
@@ -46,6 +48,7 @@ namespace NewsPage.Controllers.Topics
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateTopic(Guid id, [FromBody] Topic updatedTopic)
         {
             if (id != updatedTopic.Id)
@@ -59,6 +62,7 @@ namespace NewsPage.Controllers.Topics
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTopic(Guid id)
         {
             var isDeleted = await _topicRepository.DeleteTopicAsync(id);

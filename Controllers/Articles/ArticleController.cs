@@ -37,6 +37,7 @@ namespace NewsPage.Controllers
                 Content = articleCreateDTO.Content,
                 Status = articleCreateDTO.Status,
                 IsShowAuthor = articleCreateDTO.IsShowAuthor,
+                CreateAt = DateTime.UtcNow,
                 UserAccountId = articleCreateDTO.UserAccountId,
                 CategoryId = articleCreateDTO.CategoryId
             };
@@ -90,6 +91,7 @@ namespace NewsPage.Controllers
                 Status = articleEditorCreateDTO.Status,
                 PublishedAt = null,
                 IsShowAuthor = articleEditorCreateDTO.IsShowAuthor,
+                CreateAt = DateTime.UtcNow,
                 UserAccountId = editorAccount.Id, //  UserAccountId của editor
                 CategoryId = articleEditorCreateDTO.CategoryId
             };
@@ -301,6 +303,7 @@ namespace NewsPage.Controllers
                 Status = article.Status,
                 PublishedAt = article.PublishedAt ?? null,
                 UpdateAt = article.UpdateAt ?? null,
+                CreateAt = article.CreateAt,
                 Category = article.Category == null ? null : new CategoryDTO
                 {
                     Id = article.Category.Id,

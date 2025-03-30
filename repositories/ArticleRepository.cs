@@ -150,6 +150,9 @@ namespace NewsPage.Repositories
                 case "updateat":
                     query = sortOrder == "asc" ? query.OrderBy(a => a.UpdateAt) : query.OrderByDescending(a => a.UpdateAt);
                     break;
+                case "createat":
+                    query = sortOrder == "asc" ? query.OrderBy(a => a.CreateAt) : query.OrderByDescending(a => a.CreateAt);
+                    break;
                 default:
                     query = query.OrderByDescending(a => a.PublishedAt); // default
                     break;

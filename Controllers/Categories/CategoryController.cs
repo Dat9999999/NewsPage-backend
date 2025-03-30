@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NewsPage.Models.entities;
 using NewsPage.Models.RequestDTO;
 using NewsPage.Models.ResponseDTO;
@@ -42,6 +43,7 @@ namespace NewsPage.Controllers.Categories
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<CategoryDTO>>> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
         {
             var topic = await _topicRepository.GetTopicByIdAsync(categoryCreateDTO.TopicId);
@@ -56,6 +58,7 @@ namespace NewsPage.Controllers.Categories
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<CategoryDTO>>> UpdateCategory(Guid id, [FromBody] CategoryUpdateDTO categoryDto)
         {
             if (id != categoryDto.Id)
@@ -77,6 +80,7 @@ namespace NewsPage.Controllers.Categories
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);

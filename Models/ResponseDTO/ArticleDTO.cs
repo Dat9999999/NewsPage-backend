@@ -12,6 +12,7 @@ namespace NewsPage.Models.ResponseDTO
         public required ArticleStatus Status { get; set; }
         public DateTime? PublishedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
+        public required DateTime CreateAt { get; set; }
         public CategoryDTO? Category { get; set; }
         public UserDetails? UserDetails { get; set; }
         public string? UserAccountEmail { get; set; }
