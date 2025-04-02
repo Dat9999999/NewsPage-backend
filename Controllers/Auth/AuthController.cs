@@ -137,10 +137,6 @@ namespace NewsPage.Controllers.Auth
         {
             try
             {
-                if (await _userAccountRepository.GetByEmail(email) is not null)
-                {
-                    return BadRequest(new { message = "Email đã tồn tại, vui lòng dùng email khác để đăng ký" });
-                }
                 //create subject 
                 string subject = "Xác thực Email";
                 //create otp 
@@ -195,8 +191,6 @@ namespace NewsPage.Controllers.Auth
 
                 //create otp 
                 string otp = _otpHelper.GenerateOtp(key).Otp;
-
-
 
                 //send email
                 _mailHelper.ConfigEmail(subject, email, otp);

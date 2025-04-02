@@ -84,9 +84,15 @@ namespace NewsPage.repositories
 
         public async void VerifyEmail(string email, UserAccounts user)
         {
-            
-            user.IsVerified = true;
-            await _context.SaveChangesAsync();
+            try
+            {
+                user.IsVerified = true;
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
 
