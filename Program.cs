@@ -1,9 +1,14 @@
 ﻿
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NewsPage.data;
-using NewsPage.repositories.interfaces;
+using NewsPage.helpers;
 using NewsPage.repositories;
+using NewsPage.repositories.interfaces;
+using NewsPage.Repositories;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NewsPage.helpers;
@@ -57,9 +62,9 @@ namespace NewsPage
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-            // connect to Redis // xử lý mã otp 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-                .Connect(builder.Configuration["Redis:ConnectionString"]));
+            //// connect to Redis // xử lý mã otp 
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+            //    .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
@@ -87,6 +92,10 @@ namespace NewsPage
             //Auth service
             builder.Services.AddScoped<IUserAccountRepository, UserAccountsRepository>();
             builder.Services.AddScoped<IUserDetailRepository, UserDetailRepository>();
+            builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password
@@ -99,6 +108,24 @@ namespace NewsPage
 
             //Generate OTP
             builder.Services.AddSingleton<OtpHelper>();
+
+            // Convert enum string
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+
+            // setup cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
 
 
 
@@ -130,6 +157,7 @@ namespace NewsPage
 
 
             app.MapControllers();
+            app.UseCors("AllowAll");
 
             app.Run();
         }

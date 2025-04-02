@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace NewsPage.helpers
 {
@@ -9,8 +8,8 @@ namespace NewsPage.helpers
 
         public OtpHelper(IConfiguration configuration)
         {
-            var redis = ConnectionMultiplexer.Connect(configuration["Redis:ConnectionString"]);
-            _redisDb = redis.GetDatabase();
+            //var redis = ConnectionMultiplexer.Connect(configuration["Redis:ConnectionString"]);
+            //_redisDb = redis.GetDatabase();
         }
 
         public (string Otp, DateTime Expiry) GenerateOtp(string key, int expiryMinutes = 1)

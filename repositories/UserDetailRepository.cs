@@ -16,15 +16,18 @@ namespace NewsPage.repositories
             _context = context;
             _fileHelper = fileHelper;
         }
-        public async Task<UserDetails>  CreateInfo(string FullName, string sex, DateTime Birthday, Guid userAccountId)
+        public async Task<UserDetails> CreateInfo(string FullName, string sex, DateTime Birthday, Guid userAccountId)
         {
             Guid id = Guid.NewGuid();
-            var userInfo = new UserDetails { Id = id 
-                , FullName = FullName, 
-                Sex = sex, 
-                Birthday = Birthday, 
-                UserAccountId = userAccountId, 
-                Avatar = "/uploads/default_avatar.jpg"
+            var userInfo = new UserDetails
+            {
+                Id = id
+                ,
+                FullName = FullName,
+                Sex = sex,
+                Birthday = Birthday,
+                UserAccountId = userAccountId,
+                Avatar = "default_avatar.jpg"
             };
             await _context.UserDetails.AddAsync(userInfo);
             await _context.SaveChangesAsync();

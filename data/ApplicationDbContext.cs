@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using NewsPage.Models.entities;
 
 namespace NewsPage.data
@@ -33,6 +32,8 @@ namespace NewsPage.data
                 }
             );
 
+
+
             //config unique email
             modelBuilder.Entity<UserAccounts>()
                 .HasIndex(u => u.Email)
@@ -45,10 +46,64 @@ namespace NewsPage.data
                 .HasForeignKey<UserDetails>(ud => ud.UserAccountId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+            //  UserAccount Article (1-N)
+            modelBuilder.Entity<Article>()
+                .HasOne(a => a.UserAccounts)
+                .WithMany()
+                .HasForeignKey(a => a.UserAccountId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.Topic)
+                .WithMany()
+                .HasForeignKey(c => c.TopicId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Category  Article (1-N)
+            modelBuilder.Entity<Article>()
+                .HasOne(a => a.Category)
+                .WithMany()
+                .HasForeignKey(a => a.CategoryId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //  Article Comment (1-N)
+            modelBuilder.Entity<Comment>()
+                .HasOne(co => co.Article)
+                .WithMany()
+                .HasForeignKey(c => c.ArticleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // UserAccount Comment (1-N)
+            modelBuilder.Entity<Comment>()
+                .HasOne(co => co.UserAccounts)
+                .WithMany()
+                .HasForeignKey(c => c.UserAccountId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //  enum ArticleStatus
+            modelBuilder.Entity<Article>()
+                .Property(a => a.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Article>()
+                .Property(a => a.Content)
+                .HasColumnType("NVARCHAR(MAX)");
+
             base.OnModelCreating(modelBuilder);
         }
 
         public DbSet<UserAccounts> UserAccounts { get; set; }
         public DbSet<UserDetails> UserDetails { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Topic> Topics { get; set; }
+        public DbSet<Article> Articles { get; set; }
+        public DbSet<Comment> Comments { get; set; }
     }
 }
