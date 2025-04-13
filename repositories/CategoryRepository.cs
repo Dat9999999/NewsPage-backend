@@ -75,9 +75,19 @@ namespace NewsPage.Repositories
                     .Where(c => c.ArticleId == article.Id)
                     .ToListAsync();
 
-                if (comments.Any())
+                if (comments.Count > 0)
                 {
                     _context.Comments.RemoveRange(comments);
+                }
+
+                // Xóa  ArticleVisit
+                var articleVisits = await _context.ArticleVisits
+                    .Where(c => c.ArticleId == article.Id)
+                    .ToListAsync();
+
+                if (articleVisits.Count > 0)
+                {
+                    _context.ArticleVisits.RemoveRange(articleVisits);
                 }
 
                 // Xóa Article
@@ -113,7 +123,7 @@ namespace NewsPage.Repositories
                 query = query.Where(c => c.Name.ToLower().Contains(searchName.ToLower()));
             }
 
-            if (topicId.HasValue)
+            if (topicId != null)
             {
                 query = query.Where(c => c.TopicId == topicId.Value);
             }

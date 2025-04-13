@@ -54,7 +54,7 @@ namespace NewsPage.Controllers.Categories
             var addedCategory = await _categoryRepository.AddAsync(category);
 
             var categoryDTO = new CategoryDTO { Id = addedCategory.Id, Name = addedCategory.Name, Topic = addedCategory.Topic };
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, new ApiResponse<CategoryDTO>(201, "Tạo danh mục thành công", categoryDTO));
+            return StatusCode(201, new ApiResponse<CategoryDTO>(201, "Tạo danh mục thành công", categoryDTO));
         }
 
         [HttpPut("{id}")]
@@ -81,7 +81,7 @@ namespace NewsPage.Controllers.Categories
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteCategory(Guid id)
+        public async Task<ActionResult<ApiResponse<string>>> DeleteCategory(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
