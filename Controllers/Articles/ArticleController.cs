@@ -301,8 +301,8 @@ namespace NewsPage.Controllers
                 Thumbnail = article.Thumbnail ?? string.Empty,
                 Content = article.Content ?? string.Empty,
                 Status = article.Status,
-                PublishedAt = article.PublishedAt ?? null,
-                UpdateAt = article.UpdateAt ?? null,
+                PublishedAt = article.PublishedAt,
+                UpdateAt = article.UpdateAt,
                 CreateAt = article.CreateAt,
                 Category = article.Category == null ? null : new CategoryDTO
                 {
@@ -315,7 +315,7 @@ namespace NewsPage.Controllers
                     }
                 },
                 UserDetails = userDetails,
-                UserAccountEmail = article.UserAccounts?.Email ?? null
+                UserAccountEmail = article.UserAccounts?.Email
             };
         }
 

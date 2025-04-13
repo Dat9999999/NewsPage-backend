@@ -12,7 +12,7 @@ using NewsPage.data;
 namespace NewsPage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250327053438_initDB")]
+    [Migration("20250405165118_initDB")]
     partial class initDB
     {
         /// <inheritdoc />
@@ -37,6 +37,9 @@ namespace NewsPage.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("NVARCHAR(MAX)");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsShowAuthor")
                         .HasColumnType("bit");
@@ -69,6 +72,30 @@ namespace NewsPage.Migrations
                     b.HasIndex("UserAccountId");
 
                     b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("VisitTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("UserAccountId");
+
+                    b.ToTable("ArticleVisits");
                 });
 
             modelBuilder.Entity("NewsPage.Models.entities.Category", b =>
@@ -231,6 +258,25 @@ namespace NewsPage.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("UserAccounts");
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
+                {
+                    b.HasOne("NewsPage.Models.entities.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NewsPage.Models.entities.UserAccounts", "UserAccounts")
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
 
                     b.Navigation("UserAccounts");
                 });

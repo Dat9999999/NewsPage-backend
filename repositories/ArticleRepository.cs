@@ -2,6 +2,7 @@
 using NewsPage.data;
 using NewsPage.Enums;
 using NewsPage.Models.entities;
+using NewsPage.Models.RequestDTO;
 using NewsPage.Models.ResponseDTO;
 using NewsPage.repositories.interfaces;
 
@@ -70,9 +71,19 @@ namespace NewsPage.Repositories
             .ToListAsync();
 
             // Xóa tất cả Comment
-            if (comments.Any())
+            if (comments.Count > 0)
             {
                 _context.Comments.RemoveRange(comments);
+            }
+
+            // Xóa  ArticleVisit
+            var articleVisits = await _context.ArticleVisits
+                .Where(c => c.ArticleId == article.Id)
+                .ToListAsync();
+
+            if (articleVisits.Count > 0)
+            {
+                _context.ArticleVisits.RemoveRange(articleVisits);
             }
 
             _context.Articles.Remove(article);
@@ -105,32 +116,32 @@ namespace NewsPage.Repositories
             }
 
             // Lọc theo CategoryId
-            if (categoryId.HasValue)
+            if (categoryId != null)
             {
                 query = query.Where(a => a.CategoryId == categoryId.Value);
             }
 
             // Lọc theo UserAccountId
-            if (userAccountId.HasValue)
+            if (userAccountId != null)
             {
                 query = query.Where(a => a.UserAccountId == userAccountId.Value);
             }
 
             // Lọc theo PublishedAt
-            if (publishedAt.HasValue)
+            if (publishedAt != null)
             {
                 var date = publishedAt.Value.Date;
                 query = query.Where(a => a.PublishedAt.HasValue && a.PublishedAt.Value.Date == date);
             }
 
             // Lọc theo Status
-            if (status.HasValue)
+            if (status != null)
             {
                 query = query.Where(a => a.Status == status.Value);
             }
 
             // Lọc theo TopicId
-            if (topicId.HasValue)
+            if (topicId != null)
             {
                 query = query.Where(a => a.Category.TopicId == topicId.Value);
             }
@@ -168,6 +179,87 @@ namespace NewsPage.Repositories
 
             return new PaginatedResponseDTO<Article>(articles, totalCount, pageNumber, pageSize);
         }
+
+        public async Task<PaginatedResponseDTO<UserPostStatsDTO>> GetUserPostStats(DateTime startDate, DateTime endDate, int pageNumber, int pageSize)
+        {
+
+            var query = _context.Articles
+                .Where(a => a.PublishedAt >= startDate && a.PublishedAt <= endDate)
+                .GroupBy(a => a.UserAccountId)
+                .Select(g => new UserPostStatsDTO
+                {
+                    UserAccountId = g.Key,
+                    PostCount = g.Count()
+                });
+
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(x => x.PostCount)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedResponseDTO<UserPostStatsDTO>(items, totalCount, pageNumber, pageSize);
+        }
+
+        public async Task<PaginatedResponseDTO<UserArticleViewStatsDTO>> GetUserArticleViewStats(ArticleViewStatsRequestDTO request)
+        {
+            var query = _context.ArticleVisits
+                .Where(v =>
+                    v.VisitTime >= request.ViewStartDate &&
+                    v.VisitTime <= request.ViewEndDate &&
+                    v.Article != null &&
+                    v.Article.Status == ArticleStatus.PUBLISHED &&
+                    v.Article.PublishedAt >= request.PublishStartDate &&
+                    v.Article.PublishedAt <= request.PublishEndDate)
+                .GroupBy(v => v.Article.UserAccountId)
+                .Select(g => new UserArticleViewStatsDTO
+                {
+                    UserAccountId = g.Key,
+                    TotalViews = g.Count()
+                });
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(x => x.TotalViews)
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new PaginatedResponseDTO<UserArticleViewStatsDTO>(items, totalCount, request.PageNumber, request.PageSize);
+        }
+
+        public async Task<PaginatedResponseDTO<ArticleCommentStatsDTO>> GetUserArticleCommentStats(ArticleCommentStatsRequestDTO request)
+        {
+            var query = _context.Comments
+                .Where(c =>
+                    c.CreatedAt >= request.CommentStartDate &&
+                    c.CreatedAt <= request.CommentEndDate &&
+                    c.Article != null &&
+                    c.Article.Status == ArticleStatus.PUBLISHED &&
+                    c.Article.PublishedAt >= request.PublishStartDate &&
+                    c.Article.PublishedAt <= request.PublishEndDate)
+                .GroupBy(c => c.Article.Id)
+                .Select(g => new ArticleCommentStatsDTO
+                {
+                    ArticleId = g.Key,
+                    CommentCount = g.Count()
+                });
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(x => x.CommentCount)
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new PaginatedResponseDTO<ArticleCommentStatsDTO>(items, totalCount, request.PageNumber, request.PageSize);
+        }
+
 
 
     }

@@ -87,6 +87,21 @@ namespace NewsPage.data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
+            //  Article ArticleVisit (1-N)
+            modelBuilder.Entity<ArticleVisit>()
+                .HasOne(co => co.Article)
+                .WithMany()
+                .HasForeignKey(c => c.ArticleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // UserAccount ArticleVisit (1-N)
+            modelBuilder.Entity<ArticleVisit>()
+                .HasOne(co => co.UserAccounts)
+                .WithMany()
+                .HasForeignKey(c => c.UserAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             //  enum ArticleStatus
             modelBuilder.Entity<Article>()
                 .Property(a => a.Status)
@@ -105,5 +120,6 @@ namespace NewsPage.data
         public DbSet<Topic> Topics { get; set; }
         public DbSet<Article> Articles { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<ArticleVisit> ArticleVisits { get; set; }
     }
 }

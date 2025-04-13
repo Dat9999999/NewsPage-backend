@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NewsPage.data;
 using NewsPage.helpers;
 using NewsPage.repositories;
@@ -9,11 +10,6 @@ using NewsPage.repositories.interfaces;
 using NewsPage.Repositories;
 using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using NewsPage.helpers;
-using StackExchange.Redis;
-using Microsoft.OpenApi.Models;
 
 namespace NewsPage
 {
@@ -63,8 +59,8 @@ namespace NewsPage
             options.UseSqlServer(connectionString));
 
             //// connect to Redis // xử lý mã otp 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-                .Connect(builder.Configuration["Redis:ConnectionString"]));
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+            //    .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
@@ -96,6 +92,7 @@ namespace NewsPage
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+            builder.Services.AddScoped<IArticleVisitRepository, ArticleVisitRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password

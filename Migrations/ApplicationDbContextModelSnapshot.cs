@@ -71,6 +71,30 @@ namespace NewsPage.Migrations
                     b.ToTable("Articles");
                 });
 
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("VisitTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("UserAccountId");
+
+                    b.ToTable("ArticleVisits");
+                });
+
             modelBuilder.Entity("NewsPage.Models.entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -231,6 +255,24 @@ namespace NewsPage.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("UserAccounts");
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
+                {
+                    b.HasOne("NewsPage.Models.entities.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NewsPage.Models.entities.UserAccounts", "UserAccounts")
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Article");
 
                     b.Navigation("UserAccounts");
                 });

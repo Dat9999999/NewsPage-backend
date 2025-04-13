@@ -72,9 +72,19 @@ namespace NewsPage.repositories
                             .Where(c => c.ArticleId == article.Id)
                             .ToListAsync();
 
-                        if (comments.Any())
+                        if (comments.Count > 0)
                         {
                             _context.Comments.RemoveRange(comments);
+                        }
+
+                        // Xóa  ArticleVisit
+                        var articleVisits = await _context.ArticleVisits
+                            .Where(c => c.ArticleId == article.Id)
+                            .ToListAsync();
+
+                        if (articleVisits.Count > 0)
+                        {
+                            _context.ArticleVisits.RemoveRange(articleVisits);
                         }
 
                         // Xóa Article

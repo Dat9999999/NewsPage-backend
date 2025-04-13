@@ -20,7 +20,7 @@ namespace NewsPage.Controllers.Topics
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTopic([FromBody] TopicCreateDTO topicDto)
+        public async Task<ActionResult<ApiResponse<Topic>>> CreateTopic([FromBody] TopicCreateDTO topicDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<string>(400, "Dữ liệu không hợp lệ", ModelState.ToString()));
@@ -34,7 +34,7 @@ namespace NewsPage.Controllers.Topics
             var createdTopic = await _topicRepository.AddTopicAsync(topic);
             var response = new ApiResponse<Topic>(201, "Tạo chủ đề thành công", createdTopic);
 
-            return CreatedAtAction(nameof(GetTopicById), new { id = createdTopic.Id }, response);
+            return StatusCode(201, response);
         }
 
         [HttpGet("{id}")]
@@ -49,7 +49,7 @@ namespace NewsPage.Controllers.Topics
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateTopic(Guid id, [FromBody] Topic updatedTopic)
+        public async Task<ActionResult<ApiResponse<Topic>>> UpdateTopic(Guid id, [FromBody] Topic updatedTopic)
         {
             if (id != updatedTopic.Id)
                 return BadRequest(new ApiResponse<string>(400, "ID không khớp"));
@@ -63,13 +63,13 @@ namespace NewsPage.Controllers.Topics
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteTopic(Guid id)
+        public async Task<ActionResult<ApiResponse<string>>> DeleteTopic(Guid id)
         {
             var isDeleted = await _topicRepository.DeleteTopicAsync(id);
             if (!isDeleted)
-                return NotFound(new ApiResponse<string>(404, "Không tìm thấy chủ đề để xoá"));
+                return NotFound(new ApiResponse<string>(404, "Không tìm thấy chủ đề để xoá", null));
 
-            return Ok(new ApiResponse<string>(200, "Xoá chủ đề thành công"));
+            return Ok(new ApiResponse<string>(200, "Xóa chủ đề thành công", null));
         }
 
         [HttpGet("filter")]
